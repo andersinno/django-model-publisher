@@ -1,5 +1,6 @@
 import json
 
+import django
 from django.contrib.admin import ModelAdmin, SimpleListFilter
 from django.contrib import messages
 from django.conf.urls import url
@@ -134,7 +135,10 @@ class PublisherAdmin(ModelAdmin):
         c = Context({
             'publish_btn': publish_btn,
         })
-        return t.render(c)
+        if django.VERSION >= (1, 10):
+            return t.render(c.flatten())
+        else:
+            return t.render(c)
     publisher_status.short_description = 'Last Changes'
     publisher_status.allow_tags = True
 
@@ -153,7 +157,10 @@ class PublisherAdmin(ModelAdmin):
             'publish_url': reverse(self.publish_reverse, args=(obj.pk, )),
             'unpublish_url': reverse(self.unpublish_reverse, args=(obj.pk, )),
         })
-        return t.render(c)
+        if django.VERSION >= (1, 10):
+            return t.render(c.flatten())
+        else:
+            return t.render(c)
     publisher_publish.short_description = 'Published'
     publisher_publish.allow_tags = True
 
@@ -174,6 +181,7 @@ class PublisherAdmin(ModelAdmin):
         publish_name = '%spublish' % (self.url_name_prefix, )
         unpublish_name = '%sunpublish' % (self.url_name_prefix, )
         revert_name = '%srevert' % (self.url_name_prefix, )
+
         publish_urls = [
             url(r'^(?P<object_id>\d+)/publish/$', self.publish_view, name=publish_name),
             url(r'^(?P<object_id>\d+)/unpublish/$', self.unpublish_view, name=unpublish_name),
